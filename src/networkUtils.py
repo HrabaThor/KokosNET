@@ -1,4 +1,12 @@
+import torch
 from torch import nn
+import numpy as np
+
+def to_tensor(x):
+    """Convert array into pytorch tensor"""
+    x = np.array(x)
+    return torch.from_numpy(x).float()
+
 
 class FlexibleDenseNet(nn.Module):
     def __init__(self, layers=[64,32,16,8,4], activations=nn.ReLU, last_a=None):
