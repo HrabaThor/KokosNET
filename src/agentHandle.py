@@ -2,12 +2,11 @@ import pickle
 import os
 import sys
 import base64
-import torch
-from torch import optim
 from pathlib import Path
 from IPython import display as ipythondisplay
 from gym.wrappers import Monitor
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 class AgentHandle:
     '''
@@ -61,7 +60,7 @@ class AgentHandle:
     @staticmethod
     def load_best(agent):
         '''Loads the best performing neural network into provided agent'''
-        agent.net = AgentHandle.unpickle(agent.best)
+        agent.net = AgentHandle.unpickle(agent, agent.best)
 
     @staticmethod
     def perform(agent):
@@ -70,10 +69,10 @@ class AgentHandle:
         agent.monitor_env = Monitor(
             agent.env, "./videos", force=True, video_callable=lambda episode: True)
         # Let the agent perform
-        agent.evaluate(env=agent.monitor_env)
+        reward = agent.evaluate(env=agent.monitor_env)
         ######################################### Magic here ###################################################
         # This code was stolen somewhere from the internet by Michal Szimik (hence no reference :( )
-        print(f"Reward: {agent.history['rewards'][-1]}")
+        print(f"Reward: {reward}")
         html = []
         for mp4 in Path('./videos').glob("*.mp4"):
             video_b64 = base64.b64encode(mp4.read_bytes())
@@ -82,3 +81,21 @@ class AgentHandle:
                         <source src="data:video/mp4;base64,{}" type="video/mp4" />
                     </video>'''.format(mp4, video_b64.decode('ascii')))
         ipythondisplay.display(ipythondisplay.HTML(data="<br>".join(html)))
+
+
+    @staticmethod
+    def plot_losses(agent, keys=['total', 'actor', 'critic', 'steps'], rolling=1000):
+        '''Plot the development of loss function'''
+        # Convolve losses first
+        losses = {}
+        for key in keys:
+            padding = len(agent.net.losses[key]) % rolling
+            losses[key] = np.sum(agent.net.losses[key][padding:].reshape((-1, rolling)), axis=1)
+        # Create subplots
+        fig, axes = plt.subplots(len(keys), figsize=(16,16))
+        fig.suptitle("Losses throughout learning")
+        for ax, key in zip(axes, keys):
+            ax.plot(losses[key])
+            ax.set_title(f'{key} loss')
+        plt.tight_layout()
+        plt.show()

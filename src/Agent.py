@@ -7,6 +7,7 @@ from gym import make
 import numpy as np
 from agentHandle import AgentHandle
 import yaml
+from networkUtils import to_tensor
 
 # Import neural network module
 from acCompact import ACCompact
@@ -36,7 +37,6 @@ class Agent:
         evaluate:   Evaluate agent's performance in it's or provided envirnoment
         train:      Train the agent's neural network - neural network should provide learn method
         net_init:   Initialize neural network from provided configuration
-        TODO: load_config:  Loads configuration dictionary from provided YAML file
     '''
     def __init__(self, environment="CartPole-v1", discrete=True, sample_std=0.04, net_cfg=CFG):
         '''
@@ -93,73 +93,105 @@ class Agent:
                                    activations=self.net_config['a'], policy_a=self.net_config['pa'], value_a=self.net_config['va'],
                                    policy=self.net_config['p'], value=self.net_config['v'], hidden=self.net_config['h'])
 
-    def evaluate(self, epochs=1, visualize=True, env=None):
+    def evaluate(self, epochs=1, env=None):
+        '''Evaluate agent in environment'''
         # Choose environment based on our requirement to see agent in action
         if not env:
             env = self.env
         rewards_history = []      # Track all rewards
-        for epoch in range(epochs):      # Main loop
+        for _ in range(epochs):   # Main loop
             state = env.reset()
             done = False
             rewards = 0           # Keep track of rewards
             while not done:       # Single game loop
-                action = self.net.choose_actions(state[np.newaxis, :], self.discrete, self.sample_std)[0]
+                action = self.net.choose_actions(state[np.newaxis, :], self.discrete, 0)[0]
                 state_next, reward, done, _ = env.step(action.item())
                 rewards += reward
                 state = state_next
             rewards_history.append(rewards)
         env.close()
         return rewards_history
-    
-    def train(self, epochs=1000, lr=0.0003, gamma=0.92, beta=0.25, gyms=16,
-              path="models", checkpoint=50):
-        self.lr = lr
-        # Initialize optimizer
-        optimizer = optim.Adam(self.net.parameters(), lr)
-        cache = np.empty(0)                    # Cache to keep track of learning
 
-        # Create all environments
-        envs = np.array([make(self.env_id) for _ in range(gyms)])
-        states = np.stack([env.reset() for env in envs])
-        
-        # Main training loop
-        epoch = 0
-        rewards = np.zeros(gyms)
-        while epoch < epochs:
-            # Pseudo-parallel learning (sequentially learning on multiple envs)
-            actions = self.net.choose_actions(states, self.discrete, self.sample_std).reshape((gyms, -1))  # Choose actions from distributions
-            states_next, reward, dones, info = np.array(       # Apply actions through envs
-                [np.array(env.step(action.item())) for action, env in zip(actions, envs)]).transpose()
-            rewards = rewards + reward
-            # Apply some neccessary formatting
-            dones, rewards, states_next = dones.astype(bool), rewards.astype(np.float32), np.stack(states_next)
-            self.net.learn(states, states_next, rewards, dones, actions, gamma, beta,
-                           optimizer, self.discrete, self.sample_std)
-            
-            # Increment by number of envs done (finished)
-            epoch += sum(dones)
-            
-            ########## Choose next states or if done - reset the env and begin once again ########## MBY NUMPY
-            if dones.any():
-                done = np.where(dones)                      # Get IDs of done agents
-                rewards_done = rewards[dones]               # Get their rewards and write it down
-                self.history['rewards'] = np.append(self.history['rewards'], rewards_done)
-                cache = np.append(cache, rewards_done)
-                rewards[dones] = 0                          # Reset rewards for new agents
-                r = rewards_done.mean() 
-                if r >= self.max_reward:  # If best reward, save the agent
-                    self.max_reward = r   # Get new reward and save weights with path
-                    self.best = AgentHandle.pickle(self, filename=f"e{epoch}_r{r}", path=path)
-            
-                # Update states by resetting envs only when agent finished (done)
-                states[dones] = np.array([env_.reset() for env_ in envs[dones]])
-            # Propagate all next states for env where agent did not finish
-            states[np.logical_not(dones)] = states_next[np.logical_not(dones)]
-            
-            # Write out the progress
-            if len(cache) >= checkpoint:
-                        print(f"Epoch: {epoch}\tCumulative reward: {cache.mean()}")
-                        cache = np.empty(0)
 
-        # Close all environments
-        _ = [env.close() for env in envs]
+    # def train(self, epochs=1000, lr=0.0003, gamma=0.99, beta=0.001, gyms=16,
+    #           path="models", checkpoint=50):
+    #     self.lr = lr
+    #     # Initialize optimizer
+    #     optimizer = optim.Adam(self.net.parameters(), lr)
+    #     # Cache to keep track of learning, TODO: Improve cache
+    #     cache = np.empty(0)
+
+    #     # Create all environments
+    #     envs = np.array([make(self.env_id) for _ in range(gyms)])
+    #     states = np.stack([env.reset() for env in envs])
+
+    #     # Main training loop
+    #     epoch = 0
+    #     entropies = to_tensor(np.zeros(gyms))
+    #     rewards = np.array([np.empty(0)]*gyms)
+    #     log_probs = torch.tensor([np.empty(0)]*gyms)
+    #     values = torch.tensor([np.empty(0)]*gyms)
+    #     runs_from = np.zeros(gyms).astype(int)
+    #     while epoch < epochs:
+    #         # Pseudo-parallel learning (sequentially learning on multiple envs)
+    #         value, action_dist, action = self.net.choose_actions(
+    #             states, self.discrete, self.sample_std)  # Initial env evaluation with action selection and approximated Qvalues
+    #         action = action.reshape((gyms))
+
+    #         states_next, reward, dones, _ = np.array(       # Apply actions through envs
+    #             [np.array(env.step(action.item())) for action, env in zip(action, envs)]).transpose()
+    #         # Some datatype adjustements
+    #         dones = dones.astype(bool)
+    #         states_next = np.stack(states_next)
+
+    #         # TODO: Waht is this? log_prob = torch.log(policy_dist.squeeze(0)[action])
+    #         log_prob = action_dist.log_prob(action)
+    #         # TODO: entropy = -np.sum(np.mean(dist) * np.log(dist))
+    #         entropies += action_dist.entropy().mean()
+    #         # Apply some neccessary formatting
+    #         value = value.reshape((gyms, 1))
+    #         reward = reward.reshape((gyms, 1))
+    #         log_prob = log_prob.reshape((gyms, 1))
+    #         # Store them for later use
+    #         values = torch.hstack((values, value))
+    #         rewards = np.hstack((rewards, reward))
+    #         log_probs = torch.hstack((log_probs, log_prob))
+
+    #         # optimize the actor critic network
+    #         self.net.learn(optimizer, rewards, values, log_probs, states, runs_from, entropies, gamma, beta)
+            
+    #         # Increment by number of envs done (finished)
+    #         epoch += sum(dones)
+            
+    #         ########## Choose next states or if done - reset the env and begin once again ########## MBY NUMPY
+    #         if dones.any():
+    #             # Get cumulative rewards of finished agents
+    #             rewards_done = np.array([r[i:].sum() for i, r in zip(runs_from[dones], rewards[dones])])
+    #             # Write rewards in history
+    #             self.history['rewards'] = np.append(self.history['rewards'], rewards_done)
+    #             cache = np.append(cache, rewards_done)
+
+    #             # keep track of best performing agent
+    #             r = rewards_done.mean() 
+    #             if r >= self.max_reward:  # If best reward, save the agent
+    #                 self.max_reward = r   # Get new reward and save weights with path
+    #                 self.best = AgentHandle.pickle(self, filename=f"e{epoch}_r{r}", path=path)
+            
+
+    #             # Keep track of trajectories
+    #             runs_from[dones] = rewards.shape[1]
+    #             # Remove obsolete information
+    #             min_id = runs_from.min()
+    #             rewards, log_probs, values = rewards[min_id:], log_probs[min_id:], values[min_id:]
+    #             # Update states by resetting envs only when agent finished (done)
+    #             states[dones] = np.array([env_.reset() for env_ in envs[dones]])
+    #         # Propagate all next states for env where agent did not finish
+    #         states[np.logical_not(dones)] = states_next[np.logical_not(dones)]
+            
+    #         # Write out the progress
+    #         if len(cache) >= checkpoint:
+    #                     print("Epoch: {}\tCumulative reward: {:.2f}".format(epoch, cache.mean()))
+    #                     cache = cache[checkpoint-1:]
+
+    #     # Close all environments
+    #     _ = [env.close() for env in envs]

@@ -23,7 +23,7 @@ class FlexibleDenseNet(nn.Module):
         for i, layer in enumerate(layers[1:]):
             self.model.append(nn.Linear(layers[i], layers[i+1]))
             if activ[i]:
-                self.model.append(activ[i]())
+                self.model.append(activ[i]() if activ[i] == nn.Softmax else activ[i](layers[i+1]))
         
     def forward(self, x):
         # Iterate through each layer of model, return the last value
