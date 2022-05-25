@@ -64,7 +64,7 @@ parser.add_argument("--max-env-steps", type=int, default=200,
                     help="Max steps in environment before resetting")
 parser.add_argument("--env", type=str, default="Pendulum-v1",
                     help="Set environmnet ID")
-# Set 
+
 # Parse arguments
 args = parser.parse_args()
 
