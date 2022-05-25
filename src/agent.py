@@ -213,6 +213,7 @@ class Agent:
 
     def train(self, steps, batch_size=100, policy_delay=2, r_avg=256, max_steps=1000, pbar_update=5):
         '''The main training loop'''
+        self.policy_delay = policy_delay
         done = False
         best = float('-inf')
         env_step_counter = 0
@@ -227,7 +228,7 @@ class Agent:
                 rewards = np.append(rewards, reward)
                 # Check if best performing agent, if yes - save it
                 reward_avg = rewards[-r_avg:].mean()
-                self.history['reward'] = np.append(self.history['reward'], reward_avg)
+                self.history['reward'] = rewards
 
                 if reward_avg > best:
                     self.save()
@@ -251,7 +252,7 @@ class Agent:
             return data, np.arange(len(data)) + 1
         else:
             drop = len(data) % bins
-            values = data[drop:].reshape((bins, -1)).sum(axis=1) / bins
+            values = data[drop:].reshape((bins, -1)).sum(axis=1) / (len(data) / bins)
             ticks = (np.arange(len(values)) + 1) * (len(data)) // bins
             return values, ticks
     
@@ -262,7 +263,7 @@ class Agent:
         r_vals, r_ticks = self.get_plottable_data(bins, self.history['reward'])
         fig, (ax_a, ax_c, ax_r) = plt.subplots(3,1,figsize=size)
         
-        ax_a.plot(a_ticks, a_vals, 'g')
+        ax_a.plot(a_ticks * self.policy_delay, a_vals, 'g')
         ax_a.set_title("Actor loss")
         ax_a.set_xlabel("steps")
         ax_c.plot(c_ticks, c_vals, 'r')
@@ -280,3 +281,4 @@ class Agent:
             fig.savefig(save)
         if show:
             plt.show()
+        print(self.history)
