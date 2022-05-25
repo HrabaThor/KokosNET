@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 class Agent:
     def __init__(self, env_id='Pendulum-v1', noise=0.1, buffer=1000000, warmup=100000,
                  model_dir="models", lra=0.001, lrc=0.001, tau=0.005, gamma=0.99,
-                 c_layers=[400, 300], a_layers=[400, 300]):
+                 c_layers=[400, 300], a_layers=[400, 300], load=False):
         '''Initialize our agent'''
         # Initialize environment
         self.init_environment(env_id)
@@ -40,18 +40,22 @@ class Agent:
         self.actor = Actor(self.state_size, self.action_size, max_action=self.max_action, name='actor', layers=a_layers)
         self.actor_target = Actor(self.state_size, self.action_size, max_action=self.max_action, layers=a_layers)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lra)
-        self.morph(self.actor, self.actor_target, tau=1)
 
         # Get our first critic and it's agent
         self.critic1 = Critic(self.state_size, self.action_size, name='critic1', layers=c_layers)
         self.critic_target1 = Critic(self.state_size, self.action_size, layers=c_layers)
         self.critic_optimizer1 = torch.optim.Adam(self.critic1.parameters(), lr=lrc)
-        self.morph(self.critic1, self.critic_target1, tau=1)
 
         # Get our second critic and it's target
         self.critic2 = Critic(self.state_size, self.action_size, name='critic2', layers=c_layers)
         self.critic_target2 = Critic(self.state_size, self.action_size, layers=c_layers)
         self.critic_optimizer2 = torch.optim.Adam(self.critic2.parameters(), lr=lrc)
+
+        if load:
+            self.load()
+
+        self.morph(self.actor, self.actor_target, tau=1)
+        self.morph(self.critic1, self.critic_target1, tau=1)
         self.morph(self.critic2, self.critic_target2, tau=1)
 
         self.fill_replay_buffer(size=warmup)
