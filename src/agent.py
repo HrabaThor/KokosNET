@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 class Agent:
     def __init__(self, env_id='Pendulum-v1', noise=0.1, buffer=1000000, warmup=100000,
                  model_dir="models", lra=0.001, lrc=0.001, tau=0.005, gamma=0.99,
-                 c_layers=[400, 300], a_layers=[400, 300], load=False):
+                 c_layers=[400, 300], a_layers=[400, 300]):
         '''Initialize our agent'''
         # Initialize environment
         self.init_environment(env_id)
@@ -40,22 +40,18 @@ class Agent:
         self.actor = Actor(self.state_size, self.action_size, max_action=self.max_action, name='actor', layers=a_layers)
         self.actor_target = Actor(self.state_size, self.action_size, max_action=self.max_action, layers=a_layers)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lra)
+        self.morph(self.actor, self.actor_target, tau=1)
 
         # Get our first critic and it's agent
         self.critic1 = Critic(self.state_size, self.action_size, name='critic1', layers=c_layers)
         self.critic_target1 = Critic(self.state_size, self.action_size, layers=c_layers)
         self.critic_optimizer1 = torch.optim.Adam(self.critic1.parameters(), lr=lrc)
+        self.morph(self.critic1, self.critic_target1, tau=1)
 
         # Get our second critic and it's target
         self.critic2 = Critic(self.state_size, self.action_size, name='critic2', layers=c_layers)
         self.critic_target2 = Critic(self.state_size, self.action_size, layers=c_layers)
         self.critic_optimizer2 = torch.optim.Adam(self.critic2.parameters(), lr=lrc)
-
-        if load:
-            self.load()
-
-        self.morph(self.actor, self.actor_target, tau=1)
-        self.morph(self.critic1, self.critic_target1, tau=1)
         self.morph(self.critic2, self.critic_target2, tau=1)
 
         self.fill_replay_buffer(size=warmup)
@@ -217,7 +213,6 @@ class Agent:
 
     def train(self, steps, batch_size=100, policy_delay=2, r_avg=256, max_steps=1000, pbar_update=5):
         '''The main training loop'''
-        self.policy_delay = policy_delay
         done = False
         best = float('-inf')
         env_step_counter = 0
@@ -232,7 +227,7 @@ class Agent:
                 rewards = np.append(rewards, reward)
                 # Check if best performing agent, if yes - save it
                 reward_avg = rewards[-r_avg:].mean()
-                self.history['reward'] = rewards
+                self.history['reward'] = np.append(self.history['reward'], reward_avg)
 
                 if reward_avg > best:
                     self.save()
@@ -256,7 +251,7 @@ class Agent:
             return data, np.arange(len(data)) + 1
         else:
             drop = len(data) % bins
-            values = data[drop:].reshape((bins, -1)).sum(axis=1) / (len(data) / bins)
+            values = data[drop:].reshape((bins, -1)).sum(axis=1) / bins
             ticks = (np.arange(len(values)) + 1) * (len(data)) // bins
             return values, ticks
     
@@ -267,7 +262,7 @@ class Agent:
         r_vals, r_ticks = self.get_plottable_data(bins, self.history['reward'])
         fig, (ax_a, ax_c, ax_r) = plt.subplots(3,1,figsize=size)
         
-        ax_a.plot(a_ticks * self.policy_delay, a_vals, 'g')
+        ax_a.plot(a_ticks, a_vals, 'g')
         ax_a.set_title("Actor loss")
         ax_a.set_xlabel("steps")
         ax_c.plot(c_ticks, c_vals, 'r')
@@ -285,4 +280,3 @@ class Agent:
             fig.savefig(save)
         if show:
             plt.show()
-        print(self.history)
