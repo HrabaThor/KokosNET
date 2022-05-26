@@ -23,15 +23,12 @@ parser.add_argument("--warmup", type=int, default=100000,
                     help="Populate buffer before training with warmup steps")
 parser.add_argument("--train", type=int, default=100000,
                     help="Train the model for N steps")
-<<<<<<< HEAD
-=======
 parser.add_argument("--render", action='store_true',
                     help="Render evaluation process")
 parser.add_argument("--savevid", action='store_true',
                     help="Save rendered video")
 parser.add_argument("--fps", type=float, default=float("inf"),
                     help="FPS when rendering evaluation")
->>>>>>> Add Monitor support
 parser.add_argument("--policy-delay", type=int, default=2,
                     help="Learn actors each N learning steps")
 parser.add_argument("--pbar-update", type=int, default=5,
