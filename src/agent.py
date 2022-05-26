@@ -67,7 +67,6 @@ class Agent:
             self.env = gym.make(env_id, continuous=True)
 
         self.monitor_env = Monitor(self.env, "./videos", force=True, video_callable=lambda episode: True)
-
         self.last_state = self.env.reset()
         # Get action space from environment (assume it's low is -high)
         self.max_action = self.env.action_space.high[0]
