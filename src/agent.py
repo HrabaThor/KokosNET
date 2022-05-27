@@ -11,6 +11,7 @@ from torch.nn.functional import mse_loss
 #import torchviz
 from time import sleep
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class Agent:
     def __init__(self, env_id='Pendulum-v1', noise=0.1, buffer=1000000, warmup=100000,
@@ -180,8 +181,10 @@ class Agent:
                 q = self.critic1(torch.cat((states, new_action), dim=1))
                 loss = -torch.mean(q)
 
-                self.history['actor_loss'] = np.append(self.history['actor_loss'], loss.detach())
-                # Calculate actor gradients            
+                for i in range(policy_delay):
+                    self.history['actor_loss'] = np.append(self.history['actor_loss'], loss.detach())
+
+                # Calculate actor gradients
                 self.actor_optimizer.zero_grad()
                 loss.backward()
                 self.actor_optimizer.step()
@@ -268,21 +271,22 @@ class Agent:
         a_vals, a_ticks = self.get_plottable_data(bins, self.history['actor_loss'])
         c_vals, c_ticks = self.get_plottable_data(bins, self.history['critic_loss'])
         r_vals, r_ticks = self.get_plottable_data(bins, self.history['reward'])
-        fig, (ax_a, ax_c, ax_r) = plt.subplots(3,1,figsize=size)
-        
-        ax_a.plot(a_ticks, a_vals, 'g')
-        ax_a.set_title("Actor loss")
-        ax_a.set_xlabel("steps")
-        ax_c.plot(c_ticks, c_vals, 'r')
-        ax_c.set_title("Critic loss")
-        ax_c.set_xlabel("steps")
-        ax_r.plot(r_ticks, r_vals, 'b')
-        ax_r.set_title("Rewards")
-        ax_r.set_xlabel("steps")
-        
-        ax_a.grid(visible=True, which="both")
-        ax_c.grid(visible=True, which="both")
-        ax_r.grid(visible=True, which="both")
+        sns.set_theme()
+
+        fig, (ax_a, ax_c, ax_r) = plt.subplots(1, 3, figsize=size)
+
+        sns.lineplot(x=a_ticks, y=a_vals, ax = ax_a, color="red")
+        ax_a.set_title("Actor Loss")
+        ax_a.set_xlabel("Steps")
+
+        sns.lineplot(x=c_ticks, y=c_vals, ax = ax_c, color="green")
+        ax_c.set_title("Critic Loss")
+        ax_c.set_xlabel("Steps")
+
+        sns.lineplot(data=self.history["reward"], ax = ax_r, color="blue")
+        ax_r.set_title("Average Reward")
+        ax_r.set_xlabel("Episodes")
+
         plt.tight_layout(pad=0.5)
         if save:
             fig.savefig(save)

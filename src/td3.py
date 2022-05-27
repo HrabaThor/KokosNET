@@ -23,12 +23,8 @@ parser.add_argument("--warmup", type=int, default=100000,
                     help="Populate buffer before training with warmup steps")
 parser.add_argument("--train", type=int, default=100000,
                     help="Train the model for N steps")
-parser.add_argument("--render", action='store_true',
-                    help="Render evaluation process")
 parser.add_argument("--savevid", action='store_true',
                     help="Save rendered video")
-parser.add_argument("--fps", type=float, default=float("inf"),
-                    help="FPS when rendering evaluation")
 parser.add_argument("--policy-delay", type=int, default=2,
                     help="Learn actors each N learning steps")
 parser.add_argument("--pbar-update", type=int, default=5,
@@ -53,7 +49,7 @@ parser.add_argument("--plot-save", type=str, default="",
                     help="Save plotted losses and rewards")
 parser.add_argument("--bins", type=int, default=128,
                     help="Plot values as B points")
-parser.add_argument("--figsize", type=int, nargs=2, default=(9,10),
+parser.add_argument("--figsize", type=int, nargs=2, default=(9,3),
                     help="Define size of plotted chart")
 # Agent config
 parser.add_argument("--critic", type=int, nargs='+',
@@ -79,7 +75,7 @@ if __name__ == "__main__":
     agent = Agent(env_id=args.env, noise=args.noise, buffer=args.b_size,
                   warmup=0 if args.eval else args.warmup, model_dir=args.save, lra=args.lra,
                   lrc=args.lrc, tau=args.tau, gamma=args.gamma,
-                  a_layers=args.actor, c_layers=args.critic, load=args.load)
+                  a_layers=args.actor, c_layers=args.critic)
     # If evaluation is requested, load the model and evaluate it
     if args.eval:
         agent.load()
