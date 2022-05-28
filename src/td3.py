@@ -23,8 +23,6 @@ parser.add_argument("--warmup", type=int, default=100000,
                     help="Populate buffer before training with warmup steps")
 parser.add_argument("--train", type=int, default=100000,
                     help="Train the model for N steps")
-parser.add_argument("--savevid", action='store_true',
-                    help="Save rendered video")
 parser.add_argument("--policy-delay", type=int, default=2,
                     help="Learn actors each N learning steps")
 parser.add_argument("--pbar-update", type=int, default=5,
@@ -32,7 +30,7 @@ parser.add_argument("--pbar-update", type=int, default=5,
 parser.add_argument("--r-avg", type=int, default=256,
                     help="Choose best model according to mean of N last rewards")
 parser.add_argument("--batch", type=int, default=64,
-                    help="For each env step, perforl learning from BATCH samples")
+                    help="For each env step, perform learning from BATCH samples")
 # Evaluation
 parser.add_argument("--eval", action='store_true',
                     help="Evaluate model")
@@ -42,6 +40,8 @@ parser.add_argument("--render", action='store_true',
                     help="Render evaluation process")
 parser.add_argument("--fps", type=float, default=float("inf"),
                     help="FPS when rendering evaluation")
+parser.add_argument("--savevid", action='store_true',
+                    help="Save rendered video")
 # Plotting
 parser.add_argument("--plot-show", action='store_true',
                     help="Show plotted losses and rewards")
@@ -51,7 +51,7 @@ parser.add_argument("--bins", type=int, default=128,
                     help="Plot values as B points")
 parser.add_argument("--figsize", type=int, nargs=2, default=(9,3),
                     help="Define size of plotted chart")
-# Agent config
+# Net config
 parser.add_argument("--critic", type=int, nargs='+',
                     default=[400, 300], help="Specify layers of critic")
 parser.add_argument("--actor", type=int, nargs='+',
