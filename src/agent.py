@@ -3,6 +3,7 @@ import torch
 import os
 from nets import Critic, Actor
 import gym
+from gym.wrappers import Monitor
 from tqdm import tqdm
 from time import sleep
 from buffer import ReplayBuffer
@@ -10,6 +11,7 @@ from torch.nn.functional import mse_loss
 #import torchviz
 from time import sleep
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class Agent:
     def __init__(self, env_id='Pendulum-v1', noise=0.1, buffer=1000000, warmup=100000,
@@ -109,26 +111,27 @@ class Agent:
             self.train_step += 1
         return action
 
-    def evaluate(self, epochs=128, render=False, fps=24):
+    def evaluate(self, epochs=128, render=False, save=False, fps=24):
         '''Evaluate our agent'''
         
         env = self.env if not save else self.monitor_env
 
         # Array to store rewards (probably useless, could just track sum and divide it, whatever)
         rewards = np.empty(0)
+        
         # Progress bar
         pbar = tqdm(range(epochs), desc='Evaluating ...', ncols=160)
         for _ in pbar:
             # Initialize per-epoch variables
             reward = 0
-            state = self.env.reset()
+            state = env.reset()
             done = False
             while not done:
                 if render:          # May not work on your PC :/
-                    self.env.render()
+                    env.render()
                     sleep(1/fps)
                 action = self.choose_action(state, train=False)
-                state, r, done, _ = self.env.step(action)
+                state, r, done, _ = env.step(action)
                 reward += r
             rewards = np.append(rewards, reward) # Why? I don't know
             pbar.set_description("Avg: {:.2f}\tLast:{:.2f}".format(rewards.mean(), reward))
