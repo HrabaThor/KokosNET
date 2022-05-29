@@ -3,6 +3,7 @@ import torch
 import os
 from nets import Critic, Actor
 import gym
+from gym.wrappers import Monitor
 from tqdm import tqdm
 from time import sleep
 from buffer import ReplayBuffer
@@ -10,6 +11,7 @@ from torch.nn.functional import mse_loss
 #import torchviz
 from time import sleep
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 class Agent:
     def __init__(self, env_id='Pendulum-v1', noise=0.1, buffer=1000000, warmup=100000,
@@ -59,10 +61,13 @@ class Agent:
     def init_environment(self, env_id):
         '''Initialize environment and store it's key properties'''
         # Create and observe environment
-        if env_id in ["Pendulum-v1"]:
+        if env_id in ["Pendulum-v1", "Hopper-v2"]:
             self.env = gym.make(env_id)
         else:
             self.env = gym.make(env_id, continuous=True)
+
+        self.monitor_env = Monitor(self.env, "./videos", force=True, video_callable=lambda episode: True)
+            
         self.last_state = self.env.reset()
         # Get action space from environment (assume it's low is -high)
         self.max_action = self.env.action_space.high[0]
@@ -107,23 +112,27 @@ class Agent:
             self.train_step += 1
         return action
 
-    def evaluate(self, epochs=128, render=False, fps=24):
+    def evaluate(self, epochs=128, render=False, save=False, fps=24):
         '''Evaluate our agent'''
+
+        env = self.env if not save else self.monitor_env
+
         # Array to store rewards (probably useless, could just track sum and divide it, whatever)
         rewards = np.empty(0)
+        
         # Progress bar
         pbar = tqdm(range(epochs), desc='Evaluating ...', ncols=160)
         for _ in pbar:
             # Initialize per-epoch variables
             reward = 0
-            state = self.env.reset()
+            state = env.reset()
             done = False
             while not done:
                 if render:          # May not work on your PC :/
-                    self.env.render()
+                    env.render()
                     sleep(1/fps)
                 action = self.choose_action(state, train=False)
-                state, r, done, _ = self.env.step(action)
+                state, r, done, _ = env.step(action)
                 reward += r
             rewards = np.append(rewards, reward) # Why? I don't know
             pbar.set_description("Avg: {:.2f}\tLast:{:.2f}".format(rewards.mean(), reward))
@@ -172,7 +181,9 @@ class Agent:
                 q = self.critic1(torch.cat((states, new_action), dim=1))
                 loss = -torch.mean(q)
 
-                self.history['actor_loss'] = np.append(self.history['actor_loss'], loss.detach())
+                for i in range(policy_delay):
+                    self.history['actor_loss'] = np.append(self.history['actor_loss'], loss.detach())
+
                 # Calculate actor gradients            
                 self.actor_optimizer.zero_grad()
                 loss.backward()
@@ -260,21 +271,23 @@ class Agent:
         a_vals, a_ticks = self.get_plottable_data(bins, self.history['actor_loss'])
         c_vals, c_ticks = self.get_plottable_data(bins, self.history['critic_loss'])
         r_vals, r_ticks = self.get_plottable_data(bins, self.history['reward'])
-        fig, (ax_a, ax_c, ax_r) = plt.subplots(3,1,figsize=size)
+
+        sns.set_theme()
+
+        fig, (ax_a, ax_c, ax_r) = plt.subplots(1, 3, figsize=size)
+
+        sns.lineplot(x=a_ticks, y=a_vals, ax = ax_a, color="red")
+        ax_a.set_title("Actor Loss")
+        ax_a.set_xlabel("Steps")
+
+        sns.lineplot(x=c_ticks, y=c_vals, ax = ax_c, color="green")
+        ax_c.set_title("Critic Loss")
+        ax_c.set_xlabel("Steps")
+
+        sns.lineplot(data=self.history["reward"], ax = ax_r, color="blue")
+        ax_r.set_title("Average Reward")
+        ax_r.set_xlabel("Episodes")
         
-        ax_a.plot(a_ticks, a_vals, 'g')
-        ax_a.set_title("Actor loss")
-        ax_a.set_xlabel("steps")
-        ax_c.plot(c_ticks, c_vals, 'r')
-        ax_c.set_title("Critic loss")
-        ax_c.set_xlabel("steps")
-        ax_r.plot(r_ticks, r_vals, 'b')
-        ax_r.set_title("Rewards")
-        ax_r.set_xlabel("steps")
-        
-        ax_a.grid(visible=True, which="both")
-        ax_c.grid(visible=True, which="both")
-        ax_r.grid(visible=True, which="both")
         plt.tight_layout(pad=0.5)
         if save:
             fig.savefig(save)

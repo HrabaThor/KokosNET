@@ -53,7 +53,7 @@ parser.add_argument("--plot-save", type=str, default="",
                     help="Save plotted losses and rewards")
 parser.add_argument("--bins", type=int, default=128,
                     help="Plot values as B points")
-parser.add_argument("--figsize", type=int, nargs=2, default=(9,10),
+parser.add_argument("--figsize", type=int, nargs=2, default=(9,3),
                     help="Define size of plotted chart")
 
 # Net config
@@ -82,11 +82,11 @@ if __name__ == "__main__":
     agent = Agent(env_id=args.env, noise=args.noise, buffer=args.b_size,
                   warmup=0 if args.eval else args.warmup, model_dir=args.save, lra=args.lra,
                   lrc=args.lrc, tau=args.tau, gamma=args.gamma,
-                  a_layers=args.actor, c_layers=args.critic, load=args.load)
+                  a_layers=args.actor, c_layers=args.critic)
     # If evaluation is requested, load the model and evaluate it
     if args.eval:
         agent.load()
-        agent.evaluate(epochs=args.epochs, render=args.render, fps=args.fps)
+        agent.evaluate(epochs=args.epochs, render=args.render, save=args.savevid, fps=args.fps)
     # Else - train the model
     else:
         # Try - when killed by ctrl + c - plot it nevertheless
