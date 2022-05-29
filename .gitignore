@@ -1,5 +1,0 @@
-venv/
-src/__pycache__/
-src/videos/
-src/*.pdf
-experiments/videos/
