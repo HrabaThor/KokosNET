@@ -1,6 +1,5 @@
 venv/
 src/__pycache__/
-src/model/
 src/videos/
 src/*.pdf
 experiments/videos/
