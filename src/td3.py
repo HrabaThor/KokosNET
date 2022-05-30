@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+
+"""
+    File: td3.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This is the main file which controls the agent training and
+    evaluation. Use this file to setup algorithm hyperparameters and experiment
+    with different environments.
+"""
 import argparse
 from agent import Agent
 

@@ -1,3 +1,14 @@
+"""
+    File: buffer.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This file contains definition of ReplayBuffer class that is
+    used for agent training. Using this interface one can save and sample data
+    from the buffer.
+
+"""
 import numpy as np
 
 '''

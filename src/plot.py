@@ -1,3 +1,13 @@
+"""
+    File: plot.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This helper script serves for creating plot from training data
+    of our TD3 algorithm.
+
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns

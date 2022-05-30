@@ -1,3 +1,16 @@
+"""
+    File: agent.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This file represents the agent. It describes agent method such
+    as training, learning, evaluating etc. In this source file is initialized
+    agent internal structure. Use this agent interface to experiment with
+    different environments from the OpenAI gym library.
+"""
+
+
 import numpy as np
 import torch
 import os

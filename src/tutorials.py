@@ -1,6 +1,11 @@
-"""KNN Project 2022 - tutorials.py
+"""
+    File: tutorials.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
 
-This module implements tutorials from stable_baselines3 and gym documentations.
+    Description: This module implements tutorials from stable_baselines3 and gym
+    documentations.
 """
 
 __author__ = "Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00)"

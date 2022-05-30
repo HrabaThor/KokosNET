@@ -1,3 +1,14 @@
+"""
+    File: compare.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This file serves as helper script compare training data from
+    both stable-baselines-3 and our TD3 algorithm.
+
+"""
+
 import argparse
 import numpy as np
 import seaborn as sns

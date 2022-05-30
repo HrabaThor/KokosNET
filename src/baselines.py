@@ -1,3 +1,16 @@
+
+"""
+    File: baselines.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: This file serves as helper script to train and evaluate TD3
+    algorithm from stable-baselines-3 library. Using this file one can also
+    generate training data, which can be used to compare with our own TD3
+    implementation.
+
+"""
 import os
 import gym
 import torch as th

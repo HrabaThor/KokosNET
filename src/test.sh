@@ -1,6 +1,14 @@
 #!/bin/bash 
 
 
+# File: test. 
+# Project: KNN - Actor-Critic 
+# Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+# Date: 2022-05-30
+
+# Description: This is a helper bash script which was used for experiment that
+# compared two TD3 implementations.
+
 
 inv_dbl_pnd () {
     MUJOCO_ENV="InvertedDoublePendulum-v2"

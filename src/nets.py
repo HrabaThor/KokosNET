@@ -1,3 +1,12 @@
+"""
+    File: nets.py 
+    Project: KNN - Actor-Critic 
+    Authors: Martin Kostelník (xkoste12), Michal Glos (xglosm01), Michal Szymik (xszymi00) 
+    Date: 2022-05-30
+
+    Description: In this file are the classes for actor and critic nets.
+
+"""
 from torch import nn
 import torch
 
