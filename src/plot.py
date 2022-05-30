@@ -2,11 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+<<<<<<< HEAD
 '''
     Helper python script to generate graph of actor and critic losses and
     average reward from training.
 '''
 
+=======
+>>>>>>> 6ddcbdc (update repo)
 def create_plot(data,save,size=(9,3),show=True):
     '''Plot training info'''
     a_vals, a_ticks = data["a_vals"], data["a_ticks"]
@@ -38,4 +41,8 @@ def create_plot(data,save,size=(9,3),show=True):
 
 if __name__ == "__main__":
     data = np.load("reacher/train_data"+".npz")
+<<<<<<< HEAD
+=======
+    # print(data["c_vals"])
+>>>>>>> 6ddcbdc (update repo)
     create_plot(data,"reacher/test.pdf")
