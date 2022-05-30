@@ -6,16 +6,19 @@ from stable_baselines3.common.results_plotter import load_results, ts2xy
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--env", type=str, required=True,
+parser.add_argument("--env", type=str, 
                     help="Name of environment to compare.")
 parser.add_argument("--r-avg", type=int, default=256,
                     help="Choose best model according to mean of N last rewards")
-parser.add_argument("--sb3-dir", type=str, required=True,
+parser.add_argument("--sb3-dir", type=str, 
                     help="Directory with baseline data")
-parser.add_argument("--dir", type=str, required=True,
+parser.add_argument("--dir", type=str, 
                     help="Directory with our data")
 parser.add_argument("--save-dir", type=str, default="comparisons",
                     help="Directory to save the plot into")
+
+parser.add_argument("--compare-all", action='store_true',
+                    help="Load weights before training")
 
 args = parser.parse_args()
 
@@ -53,7 +56,40 @@ def plot_rewards(sb3_data, our_data):
 
     fig.savefig(args.save_dir+"/"+args.env+"_cmp.pdf")
 
+
+def plot_all():
+    sns.set_theme()
+    
+
+    fig, (ax_idp, ax_r, ax_hch) = plt.subplots(1, 3, figsize=(9,3))
+    axs = [ax_idp, ax_r, ax_hch]
+    sb3_dirs = ["sb3_InvertedDoublePendulum","sb3_reacher","sb3_halfcheetah"]
+    our_dirs = ["InvertedDoublePendulum","Reacher","HalfCheetah"]
+    for env, (sb3_dir,our_dir) in enumerate(zip(sb3_dirs,our_dirs)):
+        sb3_data = get_sb3_data(sb3_dir)
+        our_data = get_our_data(our_dir)
+
+        sns.lineplot(data=sb3_data, ax = axs[env], color="red")
+        sns.lineplot(data=our_data, ax = axs[env], color="blue")
+        axs[env].set_title(our_dir+"-v2",fontsize=10)
+        axs[env].set_xlabel("Episodes",fontsize=8)
+        
+        
+        axs[env].tick_params(axis='both', which='major', labelsize=8)
+
+    # plt.legend(["SB3-TD3","Our-TD3"],loc='upper center', bbox_to_anchor=(0.5, 1.05),
+    #       ncol=3, fancybox=True, shadow=True)
+    axs[1].legend( labels=["SB3-TD3","Our-TD3"],loc='upper center', 
+             bbox_to_anchor=(0.5, -0.25),fancybox=False, shadow=False, ncol=3)
+    fig.suptitle("Average rewards") 
+    plt.tight_layout(pad=0.5)
+    fig.savefig("comparison_all.pdf")
+
+
 if __name__ == "__main__":
-    sb3_data = get_sb3_data(args.sb3_dir)
-    our_data = get_our_data(args.dir)
-    plot_rewards(sb3_data,our_data)
+    if args.compare_all:
+        plot_all()
+    else:
+        sb3_data = get_sb3_data(args.sb3_dir)
+        our_data = get_our_data(args.dir)
+        plot_rewards(sb3_data,our_data)
