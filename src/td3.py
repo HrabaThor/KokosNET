@@ -91,6 +91,8 @@ if __name__ == "__main__":
     else:
         # Try - when killed by ctrl + c - plot it nevertheless
         try:
+            if args.load:
+                agent.load()
             agent.train(args.train, batch_size=args.batch, policy_delay=args.policy_delay,
                         r_avg=args.r_avg, max_steps=args.max_env_steps, pbar_update=args.pbar_update)
         finally:
