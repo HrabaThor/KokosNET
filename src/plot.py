@@ -8,14 +8,10 @@
     of our TD3 algorithm.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-
-'''
-    Helper python script to generate graph of actor and critic losses and
-    average reward from training.
-'''
 
 def create_plot(data,save,size=(9,3),show=True):
     '''Plot training info'''

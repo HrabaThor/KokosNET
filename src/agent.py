@@ -10,7 +10,6 @@
     different environments from the OpenAI gym library.
 """
 
-
 import numpy as np
 import torch
 import os

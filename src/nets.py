@@ -7,6 +7,7 @@
     Description: In this file are the classes for actor and critic nets.
 
 """
+
 from torch import nn
 import torch
 
