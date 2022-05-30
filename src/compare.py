@@ -16,7 +16,7 @@ parser.add_argument("--dir", type=str,
                     help="Directory with our data")
 parser.add_argument("--save-dir", type=str, default="comparisons",
                     help="Directory to save the plot into")
-
+# create graphs for report
 parser.add_argument("--compare-all", action='store_true',
                     help="Load weights before training")
 
@@ -25,6 +25,10 @@ args = parser.parse_args()
 
 
 def get_sb3_data(dir):
+    '''
+        Load data from monitor that were collected during the training of stable
+        baseline 3 TD3 algorithm.
+    '''
     # load baseline data
     e, r = ts2xy(load_results(dir), 'episodes')
     rewards = np.array(r)
@@ -36,6 +40,9 @@ def get_sb3_data(dir):
     return data
 
 def get_our_data(dir):
+    '''
+        Load data that were collected during the training of our algorithm.
+    '''
     # load our data
     data = np.load(dir+"/train_data"+".npz")
     rewards = data["history_reward"]
@@ -43,6 +50,9 @@ def get_our_data(dir):
     return rewards
 
 def plot_rewards(sb3_data, our_data):
+    '''
+        Create a graph displaying average rewards from both algorithms.
+    '''
     sns.set_theme()
    
     # plot both data
@@ -58,12 +68,15 @@ def plot_rewards(sb3_data, our_data):
 
 
 def plot_all():
-    sns.set_theme()
-    
+    '''
+        Create a graph for the purposes of project report containing average
+        reward for all three environment.
+    '''
+    sns.set_theme()    
 
     fig, (ax_idp, ax_r, ax_hch) = plt.subplots(1, 3, figsize=(9,3))
     axs = [ax_idp, ax_r, ax_hch]
-    sb3_dirs = ["sb3_InvertedDoublePendulum","sb3_reacher","sb3_halfcheetah"]
+    sb3_dirs = ["sb3_InvertedDoublePendulum","sb3_Reacher","sb3_HalfCheetah"]
     our_dirs = ["InvertedDoublePendulum","Reacher","HalfCheetah"]
     for env, (sb3_dir,our_dir) in enumerate(zip(sb3_dirs,our_dirs)):
         sb3_data = get_sb3_data(sb3_dir)
@@ -77,8 +90,6 @@ def plot_all():
         
         axs[env].tick_params(axis='both', which='major', labelsize=8)
 
-    # plt.legend(["SB3-TD3","Our-TD3"],loc='upper center', bbox_to_anchor=(0.5, 1.05),
-    #       ncol=3, fancybox=True, shadow=True)
     axs[1].legend( labels=["SB3-TD3","Our-TD3"],loc='upper center', 
              bbox_to_anchor=(0.5, -0.25),fancybox=False, shadow=False, ncol=3)
     fig.suptitle("Average rewards") 
