@@ -24,7 +24,7 @@ parser.add_argument("--show", action='store_true',
                     help="Load weights before training")
 parser.add_argument("--train", action='store_true',
                     help="Load weights before training")
-parser.add_argument("--env", type=str, default="InvertedDoublePendulum-v2",
+parser.add_argument("--env", type=str, required=True,
                     help="Set environmnet ID")
 
 parser.add_argument("--r-avg", type=int, default=256,
@@ -44,14 +44,12 @@ parser.add_argument("--batch", type=int, default=64,
                     help="For each env step, perforl learning from BATCH samples")
 parser.add_argument("--policy-delay", type=int, default=2,
                     help="Learn actors each N learning steps")
-
-
+parser.add_argument("--net-arch", type=int, nargs='+',
+                    default=[400, 300], help="Specify layers of critic")
 
 parser.add_argument("--dir", type=str, default="sb3_test",
                     help="Directory for saving models")
 
-parser.add_argument("--net-arch", type=int, nargs='+',
-                    default=[400, 300], help="Specify layers of critic")
 
 
 def plot_avg_reward(dir):
@@ -73,7 +71,7 @@ def plot_avg_reward(dir):
 
 def baselines_td3_train(env,dir, load=False):
     if load:
-        model = TD3.load(dir+"/model.zip",env)
+        model = TD3.load(dir+"/model",env)
     else:
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=args.noise * np.ones(n_actions))
@@ -86,7 +84,7 @@ def baselines_td3_train(env,dir, load=False):
     env.close()
 
 def show_video(dir):
-    model = TD3.load(dir+"/model.zip",env)
+    model = TD3.load(dir+"/model",env)
 
     obs = env.reset()
     while True:
@@ -97,19 +95,11 @@ def show_video(dir):
         if done:
             obs = env.reset()
 
-def baseline_td3_eval(dir,episodes=10):
+def baseline_td3_eval(dir,episodes=10000):
     model = TD3.load(os.path.join(dir,"model.zip"),env)
     mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=episodes)
-    print(mean_reward,std_reward)
+    print("Mean reward: {}, Standard deviation: {}".format(mean_reward,std_reward))
 
-    # obs = env.reset()
-    # while True:
-    #     action, _state = model.predict(obs, deterministic=True)
-    #     obs, reward, done, info = env.step(action)
-    #     env.render()
-
-    #     if done:
-    #         obs = env.reset()
     
 
 # Parse arguments
