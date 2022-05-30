@@ -61,12 +61,14 @@ class Agent:
     def init_environment(self, env_id):
         '''Initialize environment and store it's key properties'''
         # Create and observe environment
-        if env_id in ["Pendulum-v1","LunarLander-v2","InvertedDoublePendulum-v2","Reacher-v2","HalfCheetah-v2"]:
+
+        if env_id in ["Pendulum-v1","Hopper-v2","LunarLander-v2","InvertedDoublePendulum-v2","Reacher-v2","HalfCheetah-v2"]:
             self.env = gym.make(env_id)
         else:
             self.env = gym.make(env_id, continuous=True)
 
         self.monitor_env = Monitor(self.env, "./videos", force=True, video_callable=lambda episode: True)
+
         self.last_state = self.env.reset()
         # Get action space from environment (assume it's low is -high)
         self.max_action = self.env.action_space.high[0]
@@ -113,7 +115,7 @@ class Agent:
 
     def evaluate(self, epochs=128, render=False, save=False, fps=24):
         '''Evaluate our agent'''
-        
+
         env = self.env if not save else self.monitor_env
 
         # Array to store rewards (probably useless, could just track sum and divide it, whatever)
@@ -269,12 +271,15 @@ class Agent:
         '''Plot training info'''
         a_vals, a_ticks = self.get_plottable_data(bins, self.history['actor_loss'])
         c_vals, c_ticks = self.get_plottable_data(bins, self.history['critic_loss'])
+
         r_vals, r_ticks = self.get_plottable_data(bins, self.history['reward'])        
         np.savez(self.model_dir+"/train_data",a_vals=a_vals,a_ticks=a_ticks,c_vals=c_vals,c_ticks=c_ticks,r_vals=r_vals, r_ticks=r_ticks, history_reward=self.history['reward'])
+
 
         sns.set_theme()
 
         fig, (ax_a, ax_c, ax_r) = plt.subplots(1, 3, figsize=size)
+
         
         sns.lineplot(x=a_ticks, y=a_vals, ax = ax_a, color="red")
         ax_a.set_title("Actor Loss")
@@ -288,6 +293,7 @@ class Agent:
         ax_r.set_title("Average Reward")
         ax_r.set_xlabel("Episodes")
        
+
         plt.tight_layout(pad=0.5)
         if save:
             fig.savefig(save)
