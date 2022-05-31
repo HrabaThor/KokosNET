@@ -1,4 +1,3 @@
-
 """
     File: baselines.py 
     Project: KNN - Actor-Critic 
@@ -11,6 +10,7 @@
     implementation.
 
 """
+
 import os
 import gym
 import torch as th

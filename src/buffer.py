@@ -9,11 +9,8 @@
     from the buffer.
 
 """
-import numpy as np
 
-'''
-This module provides a very simple implementation of replay buffer
-'''
+import numpy as np
 
 class ReplayBuffer:
     '''
